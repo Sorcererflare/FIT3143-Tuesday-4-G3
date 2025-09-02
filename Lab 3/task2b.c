@@ -23,6 +23,12 @@ int main(int argc, char *argv[]) {
         
         // Broadcast value from rank 0 to ALL processes (including rank 0 itself)
         MPI_Bcast(&value, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        if (errCode != MPI_SUCCESS)
+        {
+            printf("Rank: %d, encountered error: %d", rank, errCode);
+            fflush(stdout);
+            MPI_Abort(MPI_COMM_WORLD, errCode);
+        }
 
         if (value < 0) break;
         
