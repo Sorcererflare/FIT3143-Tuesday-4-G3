@@ -50,7 +50,13 @@ int main(int argc, char** argv){
             scanf("%d%lf", &values.a, &values.b);
         }
         //Broadcast item
-        MPI_Bcast(&values, size, Valuetype, source, MPI_COMM_WORLD);
+        int errCode;
+        errCode = MPI_Bcast(&values, size, Valuetype, source, MPI_COMM_WORLD);
+        if (errCode != MPI_SUCCESS){
+            printf("Rank: %d, encountered error: %d", myrank, errCode);
+            fflush(stdout);
+            MPI_Abort(MPI_COMM_WORLD, errCode);
+        }
         //Print
         printf("Rank: %d. values.a = %d. values.b = %lf\n",
         myrank, values.a, values.b);
