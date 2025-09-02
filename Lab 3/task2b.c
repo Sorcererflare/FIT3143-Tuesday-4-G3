@@ -19,12 +19,12 @@ int main(int argc, char *argv[]) {
             printf("Enter an integer (negative to quit): ");
             fflush(stdout);
             scanf("%d", &value);
-            if (value < 0) break;
         }
         
         // Broadcast value from rank 0 to ALL processes (including rank 0 itself)
         MPI_Bcast(&value, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
+        if (value < 0) break;
         
 
         // Print rank and received value
