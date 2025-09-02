@@ -1,6 +1,9 @@
 // BCast is a lot simpler than Send, can send/receive through BCast and can 
 // send to all processes in a single statement
 
+// By: Abdullah (33861641) (16.7%), Hayden (33861889) (16.7%), Samuel (33114110) (16.7%), 
+// Hesamreza (33861544) (16.7%), Peter (33143722) (16.7%), Khang (33048258) (16.7%)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
@@ -19,12 +22,18 @@ int main(int argc, char *argv[]) {
             printf("Enter an integer (negative to quit): ");
             fflush(stdout);
             scanf("%d", &value);
-            if (value < 0) break;
         }
         
         // Broadcast value from rank 0 to ALL processes (including rank 0 itself)
         MPI_Bcast(&value, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        if (errCode != MPI_SUCCESS)
+        {
+            printf("Rank: %d, encountered error: %d", rank, errCode);
+            fflush(stdout);
+            MPI_Abort(MPI_COMM_WORLD, errCode);
+        }
 
+        if (value < 0) break;
         
 
         // Print rank and received value
