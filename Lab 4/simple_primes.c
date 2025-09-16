@@ -4,6 +4,7 @@
 #include <mpi.h>
 
 #define MAX_PRIMES 500000
+#By: Abdullah (33861641) (16.7%), Hayden (33861889) (16.7%), Samuel (33114110) (16.7%),  Hesamreza (33861544) (16.7%), Peter (33143722) (16.7%), Khang (33048258) (16.7%)
 
 int primality_check(int n) {
     if (n == 2) return 1;
