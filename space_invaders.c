@@ -5,6 +5,10 @@
 #include <mpi.h>
 
 #define MASTER 0
+#define STATUS_TAG 0
+#define INVADER_SHOT_TAG 1
+#define PLAYER_SHOT_TAG 2
+#define KILL_TAG 3
 
 //structure to track invader state
 typedef struct {
@@ -113,7 +117,7 @@ int main(int argc, char *argv[]) {
             // 3. GET STATUS FROM ALL INVADERS
             for (int i = 1; i <= n * m; i++) {
                 int status;
-                MPI_Recv(&status, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                MPI_Recv(&status, 1, MPI_INT, i, STATUS_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 invaders[i - 1].alive = status;
             }
             
@@ -171,9 +175,9 @@ int main(int argc, char *argv[]) {
                                 // Tell invader it's dead
                                 int rank = target_index + 1;
                                 int kill = 1;
-                                MPI_Send(&kill, 1, MPI_INT, rank, 2, MPI_COMM_WORLD);
+                                MPI_Send(&kill, 1, MPI_INT, rank, PLAYER_SHOT_TAG, MPI_COMM_WORLD);
                                 
-                                invaders[target_index].alive = 0;
+                                //invaders[target_index].alive = 0;
                                 player_cannonballs[i].active = 0;
                                 break;
                             }
@@ -267,16 +271,23 @@ int main(int argc, char *argv[]) {
         // INVADER PROCESS
         int my_row = (rank - 1) / m;
         int my_col = (rank - 1) % m;
+        int left = rank - 1;
+        int right = rank + 1;
         int alive = 1;
         int my_tick = 0;
         
         srand(time(NULL) + rank);
-        
+        if (my_col == 0){
+            left = MPI_PROC_NULL;
+        }else if(my_col == m-1){
+            right = MPI_PROC_NULL;
+        }
+
         while (1) {
             my_tick++;
             
             // 1. Send status to master
-            MPI_Send(&alive, 1, MPI_INT, MASTER, 0, MPI_COMM_WORLD);
+            MPI_Send(&alive, 1, MPI_INT, MASTER, STATUS_TAG, MPI_COMM_WORLD);
             
             // 2. Decide if firing (10% chance every 4 ticks)
             int fired = 0;
@@ -291,13 +302,48 @@ int main(int argc, char *argv[]) {
 
             int flag;
             MPI_Status status;
-            MPI_Iprobe(MASTER, 2, MPI_COMM_WORLD, &flag, &status);
+            //Invader has been shot by the player
+            MPI_Iprobe(MASTER, PLAYER_SHOT_TAG, MPI_COMM_WORLD, &flag, &status);
             if (flag) {
-                int kill;
-                MPI_Recv(&kill, 1, MPI_INT, MASTER, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                alive = 0;
+                int shot;
+                MPI_Recv(&shot, 1, MPI_INT, MASTER, PLAYER_SHOT_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                
+                int random = rand() % 100;
+                if (random < 20){
+                    //shoot left
+                    int kill = 1;
+                    MPI_Send(&kill, 1, MPI_INT, left, KILL_TAG, MPI_COMM_WORLD);
+                } else if (random < 35){
+                    //shoot right
+                    int kill = 1;
+                    MPI_Send(&kill, 1, MPI_INT, right, KILL_TAG, MPI_COMM_WORLD);
+                }else if (random < 55){
+                    //block
+                    alive = 1;
+                }else{
+                    //get hit
+                    alive = 0;
+                }
             }
-            
+
+            //Invader has been killed
+            if (left != MPI_PROC_NULL){
+                MPI_Iprobe(left, KILL_TAG, MPI_COMM_WORLD, &flag, &status);
+                if (flag) {
+                    int kill;
+                    MPI_Recv(&kill, 1, MPI_INT, left, KILL_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                    alive = 0;
+                }
+            }
+
+            if (right != MPI_PROC_NULL){
+                MPI_Iprobe(right, KILL_TAG, MPI_COMM_WORLD, &flag, &status);
+                if (flag) {
+                    int kill;
+                    MPI_Recv(&kill, 1, MPI_INT, right, KILL_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                    alive = 0;
+                }
+            }
             // 4. Check for game over signal
             MPI_Iprobe(MASTER, 99, MPI_COMM_WORLD, &flag, &status);
             if (flag) {
