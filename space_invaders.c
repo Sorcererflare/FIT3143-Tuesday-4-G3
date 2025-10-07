@@ -14,6 +14,7 @@
 #define INVADER_SHOT_TAG 1
 #define PLAYER_SHOT_TAG 2
 #define KILL_TAG 3
+#define REBORN_TAG 4
 
 
 //structure to track invader state
@@ -281,7 +282,7 @@ int main(int argc, char *argv[]) {
                                     
                                     int revive_signal = 1;
                                     int target_rank = i + 1;
-                                    MPI_Send(&revive_signal, 1, MPI_INT, target_rank, 3, MPI_COMM_WORLD);
+                                    MPI_Send(&revive_signal, 1, MPI_INT, target_rank, REBORN_TAG, MPI_COMM_WORLD);
                                 }
                             }
                         }
@@ -394,10 +395,10 @@ int main(int argc, char *argv[]) {
             }
 
             // 3. Check for revive signal (Extended Task B)
-            MPI_Iprobe(MASTER, 3, MPI_COMM_WORLD, &flag, &status);
+            MPI_Iprobe(MASTER, REBORN_TAG, MPI_COMM_WORLD, &flag, &status);
             if (flag) {
                 int revive;
-                MPI_Recv(&revive, 1, MPI_INT, MASTER, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                MPI_Recv(&revive, 1, MPI_INT, MASTER, REBORN_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 if (revive == 1) { 
                    alive = 1;
                 }
