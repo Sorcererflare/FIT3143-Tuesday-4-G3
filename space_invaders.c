@@ -253,6 +253,42 @@ int main(int argc, char *argv[]) {
 
             print_game(n, m, invaders, player_col, player_cannonballs, 
                       num_player_cannonballs, enemy_cannonballs, num_enemy_cannonballs);
+
+            // 8. CHECK FOR INVADER REBORN (Extended Task B)
+            if (tick % 5 == 0) {
+                for (int i = 0; i < n * m; i++) {
+                    
+                    if (!invaders[i].alive) {
+                        int row = invaders[i].row;
+                        int col = invaders[i].col;
+
+                        
+                        int has_left = (col > 0);
+                        int has_right = (col < m - 1);
+
+                        if (has_left && has_right) {
+                            int left_index = row * m + (col - 1);
+                            int right_index = row * m + (col + 1);
+
+                            
+                            if (invaders[left_index].alive && invaders[right_index].alive) {
+                                
+                                if ((rand() % 100) < 20) {
+                                    printf(">>> REBORN! Invader at (%d,%d) is back!\n", row, col);
+                                    
+                                    invaders[i].alive = 1; 
+                                    
+                                    
+                                    int revive_signal = 1;
+                                    int target_rank = i + 1;
+                                    MPI_Send(&revive_signal, 1, MPI_INT, target_rank, 3, MPI_COMM_WORLD);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             
             // 9. SYNCHRONIZE ALL PROCESSES
             MPI_Barrier(MPI_COMM_WORLD);
@@ -356,6 +392,17 @@ int main(int argc, char *argv[]) {
                     alive = 0;
                 }
             }
+
+            // 3. Check for revive signal (Extended Task B)
+            MPI_Iprobe(MASTER, 3, MPI_COMM_WORLD, &flag, &status);
+            if (flag) {
+                int revive;
+                MPI_Recv(&revive, 1, MPI_INT, MASTER, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                if (revive == 1) { 
+                   alive = 1;
+                }
+            }
+            
             // 4. Check for game over signal
             MPI_Iprobe(MASTER, 99, MPI_COMM_WORLD, &flag, &status);
             if (flag) {
