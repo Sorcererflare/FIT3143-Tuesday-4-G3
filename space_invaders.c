@@ -4,8 +4,10 @@
 #include <unistd.h>
 #include <mpi.h>
 
+#define NUMPROCS_ARG 0
 #define ROW_ARG 1
 #define COL_ARG 2
+
 
 #define MASTER 0
 #define STATUS_TAG 0
@@ -48,8 +50,8 @@ int main(int argc, char *argv[]) {
 
     if (argc != 3) {
         if (rank == MASTER) {
-            printf("Usage: %s <rows> <cols>\n", argv[0]);
-            printf("Example: mpirun -np 7 --oversubscribe %s 3 2\n", argv[0]);
+            printf("Usage: %s <rows> <cols>\n", argv[NUMPROCS_ARG]);
+            printf("Example: mpirun -np 7 --oversubscribe %s 3 2\n", argv[NUMPROCS_ARG]);
         }
         MPI_Finalize();
         return 1;
