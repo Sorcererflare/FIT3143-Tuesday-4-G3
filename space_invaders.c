@@ -25,6 +25,12 @@ typedef struct {
     int from_row;  // -1 means from player
 } Cannonball;
 
+//structure for players
+typedef struct {
+    int alive;
+    int col;
+} PlayerStruct;
+
 void print_game(int n, int m, Invader* invaders, int player_col, Cannonball* player_balls, 
                 int num_pballs, Cannonball* enemy_balls, int num_eballs);
 
