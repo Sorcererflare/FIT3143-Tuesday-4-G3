@@ -4,11 +4,15 @@
 #include <unistd.h>
 #include <mpi.h>
 
+#define ROW_ARG 1
+#define COL_ARG 2
+
 #define MASTER 0
 #define STATUS_TAG 0
 #define INVADER_SHOT_TAG 1
 #define PLAYER_SHOT_TAG 2
 #define KILL_TAG 3
+
 
 //structure to track invader state
 typedef struct {
@@ -40,7 +44,7 @@ int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    
+
 
     if (argc != 3) {
         if (rank == MASTER) {
@@ -51,8 +55,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     
-    int n = atoi(argv[1]);  // rows
-    int m = atoi(argv[2]);  // cols
+    int n = atoi(argv[ROW_ARG]);  // rows
+    int m = atoi(argv[COL_ARG]);  // cols
     
 
     if (size != n * m + 1) {
