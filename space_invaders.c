@@ -325,7 +325,7 @@ void print_game(int n, int m, Invader* invaders, int player_col,
         for (int col = 0; col < m; col++) {
             int index = row * m + col;
             if (invaders[index].alive) {
-                printf("[A]");
+                printf("[👾 ]");
             } else {
                 printf("[ ]");
             }
